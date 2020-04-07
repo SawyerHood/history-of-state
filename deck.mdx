@@ -1,0 +1,155 @@
+import { themes } from 'mdx-deck'
+import {darcula} from 'react-syntax-highlighter/dist/esm/styles/prism';
+import {Prism as Highlighter} from 'react-syntax-highlighter'
+
+export const theme = {...themes.future}
+
+# React: Past, Present, and Future
+## By Sawyer
+
+---
+
+## Overview
+- Brief history of the React component
+- Common issues with using React components to solve problems
+- How hooks try to address some of these issues
+
+---
+
+## Beginnings of React
+- React was created at Facebook in 2011
+- Spawned out of [BoltJS](https://techcrunch.com/2011/08/29/boltjs/)
+- The original version of Bolt was written in OCaml
+- React was open sourced in 2013 and grew in popularity overtime
+
+---
+
+## Controversial Syntax
+- React started out with a very controversial syntax enhancement, JSX
+- Directly taken from Facebook's PHP language extension XHP
+
+<Highlighter language="php" style={darcula}>
+{`<?hh // strict
+$user_name = 'Fred';
+echo <tt>Hello <strong>{$user_name}</strong></tt>;`}
+</Highlighter>
+
+---
+
+## Making Components
+
+<Highlighter language="jsx" style={darcula}>
+{`
+React.createClass({
+  getInitialState() {
+    return {count: 0};
+  },
+  onClick() {
+    this.setState({
+      count: this.state.count + 1,
+    });
+  },
+  render() {
+    return <button onClick={onClick}>{this.state.count}</button>
+  }
+});
+`}
+</Highlighter>
+
+---
+
+import CreateClassCounter from './example/createClass'
+
+<CreateClassCounter />
+
+---
+
+## React.createClass
+- Pre-ES6 a factory function was used to emulate classes for PHP developers
+- React was designed to avoid prototypical inheritance
+- All methods are auto bound
+  - You can use object literal syntax without calling `.bind`
+- Component composition was used for visual composition
+- *Mixins* were used for sharing logic between components
+
+---
+
+<Highlighter language="jsx" style={darcula}>
+{`const SetIntervalMixin = {
+  componentWillMount: function() {
+    this.intervals = [];
+  },
+  setInterval: function() {
+    this.intervals.push(setInterval.apply(null, arguments));
+  },
+  componentWillUnmount: function() {
+    this.intervals.forEach(clearInterval);
+  }
+};
+${''}
+React.createClass({
+  mixins: [SetIntervalMixin],
+  getInitialState() {
+    return {count: 0};
+  },
+  componentDidMount() {
+    this.setInterval(
+      () => this.setState({count: this.state.count + 1}), 1000
+    )
+  },
+  render() {
+    return <button style={{fontSize: '10vh'}}>{this.state.count}</button>
+  }
+})`}
+</Highlighter>
+
+---
+
+import Mixin from './example/mixin';
+
+<Mixin />
+
+---
+## Mixins facilitate all sorts of logic sharing
+* Initial flux store adapters used mixins
+* This gave you the ability to share lifecycle logic and state between components
+* There were mixins for drag and drop, subscribing to data, etc.
+* The main issue is collision, mixin names could conflict
+
+---
+
+## ES6 (When JS became good)
+* Tons of features that are commonplace to JS got added
+* `let/const`
+* Modules
+* `Map/Set`
+* Arrow Functions
+* *Classes*
+
+---
+<Highlighter language="jsx" style={darcula}>
+{`class ClassComponent extends React.Component {
+  state = {count: 0}
+  ${''}
+  onClick = () => {
+    this.setState({
+      count: this.state.count + 1,
+    })
+  }
+  ${''}
+  render() {
+    return <button onClick={onClick}>{this.state.count}</button>
+  }
+}`}
+</Highlighter>
+
+---
+
+## Class Components
+* No longer had to emulate a class syntax!
+* Lost the magic of auto-binding functions (but we got arrow functions!)
+* Lost Mixins (extending components is a worse version of that)
+* New patterns for sharing logic between components
+
+
+

@@ -1,0 +1,17 @@
+{
+  "name": "react-present-future",
+  "version": "1.0.0",
+  "description": "Slides for the future and present of React",
+  "main": "index.js",
+  "dependencies": {
+    "create-react-class": "^15.6.3",
+    "mdx-deck": "^4.1.1",
+    "react-syntax-highlighter": "^12.2.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "mdx-deck deck.mdx"
+  },
+  "author": "sawyerhood",
+  "license": "ISC"
+}
