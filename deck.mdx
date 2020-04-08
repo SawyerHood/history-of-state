@@ -667,7 +667,7 @@ function withSetInterval(Component) {
 function User({userID}) {
   const user = useSelector(reduxState => reduxState.usersByID[userID])
   const dispatch = useDispatch();
-
+  ${''}
   return 
     <button 
       onClick={() => {dispatch({type: 'select user', payload: user.id})}}>
@@ -690,4 +690,9 @@ function User({userID}) {
   - Legacy Context
   - findDOMNode
   - componentWillMount, componentWillRecieveProps, componentWillUpdate
+
+
+---
+
+[https://github.com/SawyerHood/history-of-state](https://github.com/SawyerHood/history-of-state)
 
