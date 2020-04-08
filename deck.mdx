@@ -1,10 +1,11 @@
 import { themes } from "mdx-deck"
 import { darcula } from "react-syntax-highlighter/dist/esm/styles/prism"
 import { Prism as Highlighter } from "react-syntax-highlighter"
+import Form from "./example/hookForm"
 
 export const theme = { ...themes.future }
 
-# React: Past, Present, and Future
+# React: An Evolution of State Management
 
 ## By Sawyer
 
@@ -12,9 +13,9 @@ export const theme = { ...themes.future }
 
 ## Overview
 
-- Brief history of the React component
-- Common patterns for reusing functionality in React
-- How hooks try to address some of these issues
+- Brief history of the React Component and State Management
+- Common patterns for reusing stateful logic in React
+- How newer features in React make stateful logic simpler
 
 ---
 
@@ -54,7 +55,7 @@ React.createClass({
     });
   },
   render() {
-    return <button onClick={onClick}>{this.state.count}</button>
+    return <button onClick={this.onClick}>{this.state.count}</button>
   }
 });
 `}
@@ -147,7 +148,7 @@ import Mixin from "./example/mixin"
   }
   ${""}
   render() {
-    return <button onClick={onClick}>{this.state.count}</button>
+    return <button onClick={this.onClick}>{this.state.count}</button>
   }
 }`}
 </Highlighter>
@@ -308,7 +309,6 @@ import UpdateButtonRender from "./example/renderProp"
 - They lead to clunky syntax and are hard to mix multiples of
 - Both have a non-zero performace overhead
   - HOCs render an extra component in the tree for every HOC
-  - Render props can mess with PureComponents
 - HOCs in particularly can throw static type checkers for a loop
 
 ---
@@ -359,15 +359,14 @@ class SubscriptionComponent extends React.Component {
 - It is hard to share stateful logic and effects between components
 - Lifecycle methods are error prone and break stateful logic across the component
 - Class components give people false security that they are working in an object oriented language
-- Pave the way for a React optimizing compiler (like Svelte has)
 
 ---
 
 ## Hooks (circa 2018)
 
-- Eliminante React Lifecycle methods
-- Make it simple to share stateful logic with components
-- Allow users to access many of React's features in a simpler way
+- Reduce complexity of React Lifecycle methods
+- Can it be as easy to compose state as it is to compose views?
+- Can you create a React optimizing compiler?
 
 ---
 
@@ -379,7 +378,7 @@ class Button {
     this.setState({count: this.state.count + 1})
   }
   render() {
-    return <button onClick={onClick}>{this.state.count}</button>
+    return <button onClick={this.onClick}>{this.state.count}</button>
   }
 }
 `}
@@ -408,6 +407,7 @@ import HookButton from "./example/statehook"
 
 - Functions that let you "hook into" React state/lifecycle features
 - They are plain function calls, and they let React inject a return value
+- Can be composed to make _custom hooks_
 - Influenced by Effect Handlers in [Multicore OCaml](http://kcsrk.info/papers/system_effects_feb_18.pdf)
 
 ---
@@ -424,7 +424,7 @@ import HookButton from "./example/statehook"
 
 - Way to access state in functional components
 - Takes one argument which is the initial state (can take a lazy state init function as well)
-- Teturns the current value of the state and a function to update the state
+- Returns the current value of the state and a function to update the state
 - **This does not merge updates**
 
 <Highlighter language="jsx" style={darcula}>
@@ -432,6 +432,239 @@ import HookButton from "./example/statehook"
 function Button() {
   const [count, setCount] = useState(0)
   return <button onClick={() => setCount(count + 1)}>{count}</button>
+}
+`}
+</Highlighter>
+
+---
+
+<Form />
+
+<Highlighter language="jsx" style={darcula}>
+  {`
+function Form() {
+  const [text, setText] = useState("")
+  const [isChecked, setIsChecked] = useState(false)
+  return (
+    <div>
+      <input value={text} onChange={(e) => setText(e.target.value)} />
+      <input
+        type="checkbox"
+        value={isChecked}
+        onChange={() => setIsChecked(!isChecked)}
+      />
+    </div>
+  )
+}
+`}
+</Highlighter>
+
+---
+
+## useEffect
+
+- Replaces lifecycle methods
+- Used to represent side effects that a component needs to perform
+- Effects declare thier dependencies and a clean up function
+
+---
+
+import Counter from "./example/hookEffect"
+
+<Counter />
+
+<Highlighter language="jsx" style={darcula}>
+  {`
+function Counter() {
+  const [count, setCount] = useState(0)
+  ${""}
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCount((c) => c + 1)
+    }, 1000)
+    ${""}
+    return () => clearInterval(interval)
+  }, [])
+  ${""}
+  return <div>{count}</div>
+}
+`}
+</Highlighter>
+
+---
+
+## Dependency list
+
+- The effect will rerun whenever one of the dependencies changes
+- Before an effect is rerun, the cleanup function is called
+
+<Highlighter language="jsx" style={darcula}>
+  {`
+function User({ userID }) {
+  const [isLoading, setIsLoading] = useState(false)
+  const [user, setUser] = useState(null)
+  useEffect(() => {
+    setIsLoading(true)
+    fetchUser(userID).then((user) => {
+      setUser(user)
+      setIsLoading(false)
+    })
+  }, [userID])
+  ${""}
+  if (!user || isLoading) {
+    return <div>LOADING</div>
+  }
+  ${""}
+  return (
+    <div>
+      <div>Name: {user.name}</div>
+      <div>Food: {user.food}</div>
+    </div>
+  )
+}
+`}
+</Highlighter>
+
+---
+
+import APIExample from "./example/hookAPI"
+
+<APIExample />
+
+---
+
+# Can I fetch a User from Any Component?
+
+---
+
+## Custom Hooks
+
+- Any combination of hooks can be broken into a custom hook
+- This is just a function that calls other hooks
+- Convention is to start them with the word 'use'
+
+---
+
+<Highlighter language="jsx" style={darcula}>
+  {`
+function useUser(userID) {
+  const [isLoading, setIsLoading] = useState(false)
+  const [user, setUser] = useState(null)
+  useEffect(() => {
+    setIsLoading(true)
+    fetchUser(userID).then((user) => {
+      setUser(user)
+      setIsLoading(false)
+    })
+  }, [userID])
+  return [isLoading, user]
+}
+`}
+</Highlighter>
+
+---
+
+<Highlighter language="jsx" style={darcula}>
+  {`
+function User({ userID }) {
+  const [isLoading, user] = useUser(userID)
+  if (!user || isLoading) {
+    return <div>LOADING</div>
+  }
+  ${""}
+  return (
+    <div>
+      <div>Name: {user.name}</div>
+      <div>Food: {user.food}</div>
+    </div>
+  )
+}
+`}
+</Highlighter>
+
+---
+
+# Can we replace HoCs?
+
+<Highlighter language="jsx" style={darcula}>
+  {`
+function useSetInterval() {
+  const intervals = useRef([])
+  useEffect(() => {
+    return () => {
+      for (interval of intervals.current) {
+        clearInterval(interval)
+      }
+    }
+  })
+  ${""}
+  const customSetInterval = (...args) => {
+    const res = setInterval(...args)
+    intervals.current.push(res)
+  }
+  ${""}
+  return customSetInterval
+}
+`}
+</Highlighter>
+
+---
+
+<Highlighter language="jsx" style={darcula}>
+  {`
+function CountingUserComp() {
+  const setInterval = useSetInterval();
+  const user = useUser();
+  return <>{/*Do something with hooks*/}</>
+}
+`}
+</Highlighter>
+
+---
+
+## Rules of hooks
+
+- Don't call hooks in conditionals / loops
+- Only call hooks from functional components or custom hooks
+
+---
+
+## How do I backport custom hooks?
+
+- Class components aren't being removed from React for the time being
+  - Even React.createClass still works!
+- Almost anything that can be represented with a custom hook can be used as a render prop or HOC
+
+---
+
+<Highlighter language="jsx" style={darcula}>
+  {`
+function withSetInterval(Component) {
+  return class extends React.Component {
+    intervals = []
+    setInterval = (...args) => {
+      this.intervals.push(window.setInterval(...args))
+    }
+    componentWillUnmount() {
+      this.intervals.forEach(clearInterval)
+    }
+    render() {
+      return <Component {...this.props} setInterval={this.setInterval} />
+    }
+  }
+}
+`}
+</Highlighter>
+
+---
+
+<Highlighter language="jsx" style={darcula}>
+  {`
+function withSetInterval(Component) {
+  return (props) => {
+    const setInterval = useSetInterval();
+    return <Component {...props} setInterval={setInterval} />
+  }
 }
 `}
 </Highlighter>
