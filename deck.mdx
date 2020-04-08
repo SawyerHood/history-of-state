@@ -168,7 +168,6 @@ import Mixin from "./example/mixin"
 
 - Higher-Order Components
 - Render Functions
-- Extending React.Component
 
 ---
 
@@ -330,31 +329,9 @@ export default connect(mapStateToProps)(
 - Lifecycle methods are imperative and often go against the declarative nature of React
 - The componentDidMount, componentDidUpdate, componentWillUnmount duplication
 
-<Highlighter language="jsx" style={darcula}>
-  {`
-class SubscriptionComponent extends React.Component {
-  sub = null
-  componentDidMount() {
-    sub = setUpSubscription(this.props.postID)
-  }
-  componentDidUpdate({postID: oldPostID}) {
-    if (sub && this.props.postID !== oldPostID) {
-      sub.release()
-      sub = setUpSubscription(this.props.postID)
-    }
-  }
-  componentWillUnmount() {
-    if (this.sub) {
-      this.sub.release()
-    }
-  }
-}
-`}
-</Highlighter>
-
 ---
 
-## React's main problems
+## Problems
 
 - It is hard to share stateful logic and effects between components
 - Lifecycle methods are error prone and break stateful logic across the component
@@ -629,6 +606,18 @@ function CountingUserComp() {
 
 ---
 
+## Other built in hooks
+- useReducer - This Redux built into React
+- useContext - Lets you consume React.Context
+- useCallback - Lets you memoize a callback function
+- useMemo - Lets you memoize an expensive computation
+- useRef - Creates a React.ref
+- useImperativeHandle - Adds an instance method to this component's ref
+- useLayoutEffect - Like useEffect but fires after DOM mutations, but before paint
+- useDebugValue - Puts a fun message in the React Dev Tools
+
+---
+
 ## How do I backport custom hooks?
 
 - Class components aren't being removed from React for the time being
@@ -668,3 +657,37 @@ function withSetInterval(Component) {
 }
 `}
 </Highlighter>
+
+---
+
+## Using Redux
+
+<Highlighter language="jsx" style={darcula}>
+  {`
+function User({userID}) {
+  const user = useSelector(reduxState => reduxState.usersByID[userID])
+  const dispatch = useDispatch();
+
+  return 
+    <button 
+      onClick={() => {dispatch({type: 'select user', payload: user.id})}}>
+        {user.name}
+    </button>
+}`}
+
+</Highlighter>
+
+---
+
+## Concurrent Mode and the Future
+- Concurrent mode unlocks a few key features
+  - Priority-based rendering
+  - Cooperative Multitasking
+  - Suspense
+  - Interruptible pre-rendering
+- What you lose
+  - String Refs
+  - Legacy Context
+  - findDOMNode
+  - componentWillMount, componentWillRecieveProps, componentWillUpdate
+
