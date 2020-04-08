@@ -8,8 +8,12 @@ export default class extends React.Component {
       count: this.state.count + 1,
     })
   }
-  
+
   render() {
-    return <button onClick={onClick}>{this.state.count}</button>
+    return (
+      <button style={{fontSize: '10vh'}} onClick={onClick}>
+        {this.state.count}
+      </button>
+    )
   }
 }

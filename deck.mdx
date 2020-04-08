@@ -1,22 +1,25 @@
-import { themes } from 'mdx-deck'
-import {darcula} from 'react-syntax-highlighter/dist/esm/styles/prism';
-import {Prism as Highlighter} from 'react-syntax-highlighter'
+import { themes } from "mdx-deck"
+import { darcula } from "react-syntax-highlighter/dist/esm/styles/prism"
+import { Prism as Highlighter } from "react-syntax-highlighter"
 
-export const theme = {...themes.future}
+export const theme = { ...themes.future }
 
 # React: Past, Present, and Future
+
 ## By Sawyer
 
 ---
 
 ## Overview
+
 - Brief history of the React component
-- Common issues with using React components to solve problems
+- Common patterns for reusing functionality in React
 - How hooks try to address some of these issues
 
 ---
 
 ## Beginnings of React
+
 - React was created at Facebook in 2011
 - Spawned out of [BoltJS](https://techcrunch.com/2011/08/29/boltjs/)
 - The original version of Bolt was written in OCaml
@@ -25,21 +28,22 @@ export const theme = {...themes.future}
 ---
 
 ## Controversial Syntax
+
 - React started out with a very controversial syntax enhancement, JSX
 - Directly taken from Facebook's PHP language extension XHP
 
 <Highlighter language="php" style={darcula}>
-{`<?hh // strict
+  {`<?hh // strict
 $user_name = 'Fred';
 echo <tt>Hello <strong>{$user_name}</strong></tt>;`}
 </Highlighter>
 
 ---
 
-## Making Components
+## Making Components (circa 2013)
 
 <Highlighter language="jsx" style={darcula}>
-{`
+  {`
 React.createClass({
   getInitialState() {
     return {count: 0};
@@ -58,24 +62,25 @@ React.createClass({
 
 ---
 
-import CreateClassCounter from './example/createClass'
+import CreateClassCounter from "./example/createClass"
 
 <CreateClassCounter />
 
 ---
 
 ## React.createClass
+
 - Pre-ES6 a factory function was used to emulate classes for PHP developers
 - React was designed to avoid prototypical inheritance
 - All methods are auto bound
   - You can use object literal syntax without calling `.bind`
 - Component composition was used for visual composition
-- *Mixins* were used for sharing logic between components
+- _Mixins_ were used for sharing logic between components
 
 ---
 
 <Highlighter language="jsx" style={darcula}>
-{`const SetIntervalMixin = {
+  {`const SetIntervalMixin = {
   componentWillMount: function() {
     this.intervals = [];
   },
@@ -86,7 +91,7 @@ import CreateClassCounter from './example/createClass'
     this.intervals.forEach(clearInterval);
   }
 };
-${''}
+${""}
 React.createClass({
   mixins: [SetIntervalMixin],
   getInitialState() {
@@ -105,38 +110,42 @@ React.createClass({
 
 ---
 
-import Mixin from './example/mixin';
+import Mixin from "./example/mixin"
 
 <Mixin />
 
 ---
+
 ## Mixins facilitate all sorts of logic sharing
-* Initial flux store adapters used mixins
-* This gave you the ability to share lifecycle logic and state between components
-* There were mixins for drag and drop, subscribing to data, etc.
-* The main issue is collision, mixin names could conflict
+
+- Initial flux store adapters used mixins
+- This gave you the ability to share lifecycle logic and state between components
+- There were mixins for drag and drop, subscribing to data, etc.
+- The main issue is collision, mixin names could conflict
 
 ---
 
 ## ES6 (When JS became good)
-* Tons of features that are commonplace to JS got added
-* `let/const`
-* Modules
-* `Map/Set`
-* Arrow Functions
-* *Classes*
+
+- Tons of features that are commonplace to JS got added
+- `let/const`
+- Modules
+- `Map/Set`
+- Arrow Functions
+- _Classes_
 
 ---
+
 <Highlighter language="jsx" style={darcula}>
-{`class ClassComponent extends React.Component {
+  {`class ClassComponent extends React.Component {
   state = {count: 0}
-  ${''}
+  ${""}
   onClick = () => {
     this.setState({
       count: this.state.count + 1,
     })
   }
-  ${''}
+  ${""}
   render() {
     return <button onClick={onClick}>{this.state.count}</button>
   }
@@ -145,11 +154,284 @@ import Mixin from './example/mixin';
 
 ---
 
-## Class Components
-* No longer had to emulate a class syntax!
-* Lost the magic of auto-binding functions (but we got arrow functions!)
-* Lost Mixins (extending components is a worse version of that)
-* New patterns for sharing logic between components
+## Class Components (circa 2015)
 
+- No longer had to emulate a class syntax!
+- Lost the magic of auto-binding functions (but we got arrow functions!)
+- Lost Mixins (extending components is a worse version of that)
+- New patterns for sharing logic between components
 
+---
 
+## Cross cutting concerns without mixins
+
+- Higher-Order Components
+- Render Functions
+- Extending React.Component
+
+---
+
+# Higher Order Component
+
+---
+
+<Highlighter language="jsx" style={darcula}>
+  {`
+function withSetInterval(Component) {
+  return class extends React.Component {
+    intervals = []
+    setInterval = (...args) => {
+      this.intervals.push(window.setInterval(...args))
+    }
+    componentWillUnmount() {
+      this.intervals.forEach(clearInterval)
+    }
+    render() {
+      return <Component {...this.props} setInterval={this.setInterval} />
+    }
+  }
+}
+`}
+</Highlighter>
+
+---
+
+<Highlighter language="jsx" style={darcula}>
+  {`
+const UpdateButton = withSetInterval(
+  class extends React.Component {
+    state = { count: 0 }
+    componentDidMount() {
+      this.props.setInterval(
+        () => this.setState({ count: this.state.count + 1 }),
+        1000
+      )
+    }
+    render() {
+      return <button style={{ fontSize: "10vh" }}>{this.state.count}</button>
+    }
+  }
+)
+`}
+</Highlighter>
+
+---
+
+import UpdateButton from "./example/hoc"
+
+<UpdateButton />
+
+---
+
+## HOCs
+
+- function that takes a component and returns a component
+- the wrapping component is where the cross cutting concern is addressed
+- set up is done on the component, not the call site/element
+- Dependencies can be injected via props
+- Redux `connect` is a great example of this
+
+---
+
+# Render Props
+
+---
+
+<Highlighter language="jsx" style={darcula}>
+  {`
+class IntervalContainer extends React.Component {
+  intervals = []
+  setInterval = (...args) => {
+    this.intervals.push(window.setInterval(...args))
+  }
+  componentWillUnmount() {
+    this.intervals.forEach(clearInterval)
+  }
+  render() {
+    return this.props.children(this.setInterval)
+  }
+}
+`}
+</Highlighter>
+
+---
+
+<Highlighter language="jsx" style={darcula}>
+  {`
+class UpdateButton extends React.Component {
+  state = { count: 0 }
+  render() {
+    return (
+      <IntervalContainer>
+        {(setInterval) => (
+          <button
+            onClick={() =>
+              setInterval(
+                () => this.setState({ count: this.state.count + 1 }),
+                1000
+              )
+            }
+            style={{ fontSize: "10vh" }}
+          >
+            {this.state.count}
+          </button>
+        )}
+      </IntervalContainer>
+    )
+  }
+}
+`}
+</Highlighter>
+
+---
+
+import UpdateButtonRender from "./example/renderProp"
+
+<UpdateButtonRender />
+
+---
+
+## Render Props
+
+- A little simpler to understand than HOCs
+- You inject the dependencies where you use the component
+- It can be hard if you need to inject a dependency in a lifecycle method
+- React uses these with `Context.Consumer`
+- A great way to handle inversion of control with element creation
+  - Ex: virtualized lists
+
+---
+
+## Problems with Existing Patterns
+
+- Both HOCs and Render Props are bandaids for the lack of Mixins
+- They lead to clunky syntax and are hard to mix multiples of
+- Both have a non-zero performace overhead
+  - HOCs render an extra component in the tree for every HOC
+  - Render props can mess with PureComponents
+- HOCs in particularly can throw static type checkers for a loop
+
+---
+
+<Highlighter language="jsx" style={darcula}>
+  {`
+export default connect(mapStateToProps)(
+  withInterval(
+    withDataSource(ButtonComponent)
+  )
+)
+`}
+</Highlighter>
+
+---
+
+## Problems with Lifecycle Methods
+
+- Lifecycle methods are imperative and often go against the declarative nature of React
+- The componentDidMount, componentDidUpdate, componentWillUnmount duplication
+
+<Highlighter language="jsx" style={darcula}>
+  {`
+class SubscriptionComponent extends React.Component {
+  sub = null
+  componentDidMount() {
+    sub = setUpSubscription(this.props.postID)
+  }
+  componentDidUpdate({postID: oldPostID}) {
+    if (sub && this.props.postID !== oldPostID) {
+      sub.release()
+      sub = setUpSubscription(this.props.postID)
+    }
+  }
+  componentWillUnmount() {
+    if (this.sub) {
+      this.sub.release()
+    }
+  }
+}
+`}
+</Highlighter>
+
+---
+
+## React's main problems
+
+- It is hard to share stateful logic and effects between components
+- Lifecycle methods are error prone and break stateful logic across the component
+- Class components give people false security that they are working in an object oriented language
+- Pave the way for a React optimizing compiler (like Svelte has)
+
+---
+
+## Hooks (circa 2018)
+
+- Eliminante React Lifecycle methods
+- Make it simple to share stateful logic with components
+- Allow users to access many of React's features in a simpler way
+
+---
+
+<Highlighter language="jsx" style={darcula}>
+  {`
+class Button {
+  state = {count: 0}
+  onClick = () => {
+    this.setState({count: this.state.count + 1})
+  }
+  render() {
+    return <button onClick={onClick}>{this.state.count}</button>
+  }
+}
+`}
+</Highlighter>
+
+---
+
+<Highlighter language="jsx" style={darcula}>
+  {`
+function Button() {
+  const [count, setCount] = useState(0)
+  return <button onClick={() => setCount(count + 1)}>{count}</button>
+}
+`}
+</Highlighter>
+
+---
+
+import HookButton from "./example/statehook"
+
+<HookButton />
+
+---
+
+## Hooks
+
+- Functions that let you "hook into" React state/lifecycle features
+- They are plain function calls, and they let React inject a return value
+- Influenced by Effect Handlers in [Multicore OCaml](http://kcsrk.info/papers/system_effects_feb_18.pdf)
+
+---
+
+## 3 "BIG" Hooks
+
+- useState
+- useEffect
+- useContext
+
+---
+
+## useState
+
+- Way to access state in functional components
+- Takes one argument which is the initial state (can take a lazy state init function as well)
+- Teturns the current value of the state and a function to update the state
+- **This does not merge updates**
+
+<Highlighter language="jsx" style={darcula}>
+  {`
+function Button() {
+  const [count, setCount] = useState(0)
+  return <button onClick={() => setCount(count + 1)}>{count}</button>
+}
+`}
+</Highlighter>
